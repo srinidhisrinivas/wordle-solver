@@ -3,11 +3,17 @@ import numpy as np
 import random
 
 class Solver:
-	def __init__(self, length=5):
+	def __init__(self, possible_words = [], length=5):
 		self.all_possible_words = []
-		with open('words_alpha.txt','r') as f:
-			self.all_possible_words = f.read().split('\n')
+		self.game_word_length = 5;
+		if len(possible_words) != 0:
+			self.all_possible_words = possible_words;
+		else:
+			with open('words_alpha.txt','r') as f:
+				self.all_possible_words = f.read().split('\n')
+			self.all_possible_words = list(filter(lambda word: len(word) == self.game_word_length, self.all_possible_words));
 
+		
 		self.game_word_length = 5;
 		self.all_possible_words = list(filter(lambda word: len(word) == self.game_word_length, self.all_possible_words));
 		self.current_possible_words = self.all_possible_words.copy();
@@ -35,7 +41,7 @@ class Solver:
 			elif value:
 				self.current_possible_words = list(filter(lambda word: word[position] == letter.lower(), self.current_possible_words))
 			elif not value:
-				self.current_possible_words = list(filter(lambda word: word[position] != letter.lower(), self.current_possible_words))
+				self.current_possible_words = list(filter(lambda word: letter in word and word[position] != letter.lower(), self.current_possible_words))
 
 	"""
 	Convert the evaluation into a list of rules as follows:
@@ -126,6 +132,9 @@ class Solver:
 
 		certainty_level = np.sum(self.letter_probs.max(axis=0))
 		print(certainty_level);
+
+		# Heuristic to prioritize guessing when certainty level is high instead
+		# of prioritizing marginal information gain
 		if certainty_level < 4:
 			# Calculate the total entropy for all possible words
 			word_entropies = np.array([self.calculate_word_entropy(word) for word in self.all_possible_words]);
@@ -151,12 +160,13 @@ class Solver:
 rule_list = []
 
 game = WordleGameStandard()
+possible_words = game.get_word_list()
 game_state = game.query_game_state();
 game.start();
-solver = Solver()
+solver = Solver(possible_words=possible_words)
 while game_state not in ['win', 'lose']:
 	game.output();
-	guess = solver.generate_solver_guess2(rule_list)
+	guess = solver.generate_solver_guess(rule_list)
 	val = game.attempt_guess(guess);
 	if val == 'Length': 
 		print('Word not long enough, try again')

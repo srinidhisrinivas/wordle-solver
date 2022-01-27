@@ -1,23 +1,29 @@
 
 import random
-
 	
 class WordleGameStandard:
 	def __init__(self, length=5,num_tries=6):
 		self.word_list = []
 		with open('words_alpha.txt','r') as f:
 			self.word_list = f.read().split('\n')
+		
 		self.guesses_history = []
 		self.length = length
 		def generate_random_word(length=5):
 			filtered_list = list(filter(lambda x: len(x) == self.length, self.word_list));
+			#self.word_list = random.sample(filtered_list, 1000)
+			self.word_list = filtered_list#[0:1000]
 			#return 'ADDER'
-			return random.choice(filtered_list)
+			return random.choice(self.word_list)
 		self.game_word = generate_random_word(length).upper();
 		self.num_tries = num_tries;
 		self.num_attempts = 0;
 		self.game_state = 'begin' # begin, guessing, win, lose
 		
+	def get_word_list(self):
+
+		return self.word_list;
+
 	def start(self):
 		self.game_state = 'guessing'
 	def evaluate_guess(self,guess):
@@ -86,7 +92,7 @@ class WordleGameStandard:
 			self.game_state = 'lose'
 		return self.evaluate_guess(guess)
 	def output(self):
-		#print(self.game_word.upper())
+		# print(self.game_word.upper())
 		if self.game_state in ['begin', 'guessing']:
 			print('\nVenture a guess at a {} letter word!'.format(self.length))
 		print('Attempts remaining: ' + str(self.num_tries - self.num_attempts))
